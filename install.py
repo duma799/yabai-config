@@ -154,6 +154,7 @@ def setup_files(install_sketchybar=True, install_borders=True):
     reload_theme_dest = local_bin / "reload-theme"
 
     backup_and_link(reload_theme_src, reload_theme_dest)
+    backup_and_link(REPO_DIR / "scripts" / "new-wezterm", local_bin / "new-wezterm")
 
     reload_theme_src.chmod(reload_theme_src.stat().st_mode | 0o111)
 

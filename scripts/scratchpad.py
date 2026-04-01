@@ -4,7 +4,7 @@ import subprocess
 import json
 
 SCRATCHPAD_TITLE = "scratchpad"
-TERMINAL_CMD = ["kitty", "--title", SCRATCHPAD_TITLE, "--single-instance", "--instance-group", SCRATCHPAD_TITLE]
+TERMINAL_CMD = ["wezterm", "start", "--class", SCRATCHPAD_TITLE]
 
 
 def run(cmd):

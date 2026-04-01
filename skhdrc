@@ -1,7 +1,7 @@
 #!/usr/bin/env sh
 
-alt - q : ~/.local/bin/new-ghostty
-cmd - b : open -a "Zen"
+alt - q : ~/.local/bin/new-wezterm
+alt - b : open -a "Zen"
 alt - c : open -na "Visual Studio Code"
 alt - s : open -a "Spotify"
 cmd - return : open -a "Finder"

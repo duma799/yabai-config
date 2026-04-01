@@ -1,0 +1,8 @@
+#!/bin/bash
+osascript -e 'tell application "WezTerm"
+    if it is running then
+        tell application "System Events" to tell process "WezTerm" to click menu item "New Window" of menu "File" of menu bar 1
+    else
+        activate
+    end if
+end tell'
