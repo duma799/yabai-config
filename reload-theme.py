@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import json
+import os
 import shutil
 import subprocess
 import sys
@@ -8,84 +9,30 @@ from pathlib import Path
 from typing import Any, Dict
 
 
-def find_wal():
-    wal_in_path = shutil.which("wal")
-    if wal_in_path:
-        return Path(wal_in_path)
-
-    home = Path.home()
-    for version in ["3.14", "3.13", "3.12", "3.11", "3.10", "3.9"]:
-        candidate = home / "Library" / "Python" / version / "bin" / "wal"
-        if candidate.exists():
-            return candidate
-
-    return home / "Library" / "Python" / "3.14" / "bin" / "wal"
+# Colours come from tint (https://github.com/duma799/tint), which writes
+# pywal-compatible files to ~/.cache/wal and reloads SketchyBar and
+# JankyBorders itself. This script is its post-apply hook
+# (~/.config/tint/hooks/post-apply): it themes the editors to match.
+COLORS_FILE = Path.home() / ".cache" / "wal" / "colors.json"
 
 
-def set_wallpaper(wal_path, wallpaper_path):
-    if not Path(wallpaper_path).exists():
-        print(f"Error: Wallpaper not found: {wallpaper_path}")
+def run_tint(wallpaper):
+    """Theme from the wallpaper (or the given image) with tint.
+
+    tint runs this script again as its hook, which updates the editors."""
+    tint = shutil.which("tint")
+    if not tint:
+        print("Error: tint not found. Install it: brew install duma799/tint/tint")
         return False
 
-    print(f"Setting wallpaper: {wallpaper_path}")
-    try:
-        subprocess.run(
-            [str(wal_path), "-s", "-t", "-n", "-i", wallpaper_path],
-            check=True,
-            capture_output=True,
-            text=True,
-        )
-        print("Pywal colors generated")
-        return True
-    except subprocess.CalledProcessError as e:
-        print(f"Error running pywal: {e}")
-        return False
-    except FileNotFoundError:
-        print(f"Error: pywal not found at {wal_path}")
-        return False
+    args = [tint, "apply"]
+    if wallpaper:
+        if not Path(wallpaper).exists():
+            print(f"Error: Wallpaper not found: {wallpaper}")
+            return False
+        args += [wallpaper, "--set-wallpaper"]
 
-
-def reload_borders():
-    result = subprocess.run(
-        ["pgrep", "-x", "borders"], capture_output=True, text=True
-    )
-    if result.returncode != 0:
-        print("Borders not running, skipping")
-        return False
-
-    print("Reloading borders...")
-    try:
-        subprocess.run(
-            ["brew", "services", "restart", "borders"],
-            check=True,
-            capture_output=True,
-            text=True,
-        )
-        print("Borders reloaded")
-        return True
-    except subprocess.CalledProcessError as e:
-        print(f"Error reloading borders: {e}")
-        return False
-
-
-def reload_sketchybar():
-    result = subprocess.run(
-        ["pgrep", "-x", "sketchybar"], capture_output=True, text=True
-    )
-    if result.returncode != 0:
-        print("Sketchybar not running, skipping")
-        return False
-
-    print("Reloading sketchybar...")
-    try:
-        subprocess.run(
-            ["sketchybar", "--reload"], check=True, capture_output=True, text=True
-        )
-        print("Sketchybar reloaded")
-        return True
-    except subprocess.CalledProcessError as e:
-        print(f"Error reloading sketchybar: {e}")
-        return False
+    return subprocess.run(args).returncode == 0
 
 
 def lighten_color(hex_color, amount):
@@ -167,13 +114,13 @@ def blend_colors(hex_color1, hex_color2, ratio=0.5):
 
 
 def update_zed_theme():
-    colors_file = Path.home() / ".cache" / "wal" / "colors.json"
+    colors_file = COLORS_FILE
     zed_themes_dir = Path.home() / ".config" / "zed" / "themes"
-    theme_file = zed_themes_dir / "pywal.json"
+    theme_file = zed_themes_dir / "tint.json"
     settings_file = Path.home() / ".config" / "zed" / "settings.json"
 
     if not colors_file.exists():
-        print("Pywal colors not found, skipping Zed update")
+        print("tint colours not found (run tint apply), skipping Zed update")
         return False
 
     if not zed_themes_dir.exists():
@@ -234,11 +181,11 @@ def update_zed_theme():
 
         zed_theme = {
             "$schema": "https://zed.dev/schema/themes/v0.1.0.json",
-            "name": "Pywal",
-            "author": "Auto-generated from pywal",
+            "name": "Tint",
+            "author": "Generated from tint's wallpaper colours",
             "themes": [
                 {
-                    "name": "Pywal",
+                    "name": "Tint",
                     "appearance": "dark",
                     "style": {
                         "border": bg_surface,
@@ -441,7 +388,7 @@ def update_zed_theme():
 
             updated_content = re.sub(
                 r'"theme":\s*\{[^}]*"dark":\s*"[^"]*"',
-                '"theme": {\n    "mode": "system",\n    "light": "Ayu Light",\n    "dark": "Pywal"',
+                '"theme": {\n    "mode": "system",\n    "light": "Ayu Light",\n    "dark": "Tint"',
                 content,
             )
 
@@ -456,11 +403,11 @@ def update_zed_theme():
 
 
 def update_gemini_theme():
-    colors_file = Path.home() / ".cache" / "wal" / "colors.json"
+    colors_file = COLORS_FILE
     settings_file = Path.home() / ".gemini" / "settings.json"
 
     if not colors_file.exists():
-        print("Pywal colors not found, skipping Gemini CLI update")
+        print("tint colours not found (run tint apply), skipping Gemini CLI update")
         return False
 
     if not settings_file.parent.exists():
@@ -487,7 +434,7 @@ def update_gemini_theme():
 
         gemini_theme = {
             "type": "custom",
-            "name": "Pywal",
+            "name": "Tint",
             "text": {
                 "primary": fg,
                 "secondary": color8,
@@ -549,8 +496,8 @@ def update_gemini_theme():
             ui_settings["customThemes"] = {}
 
         custom_themes: Dict[str, Any] = ui_settings["customThemes"]
-        custom_themes["Pywal"] = gemini_theme
-        ui_settings["theme"] = "Pywal"
+        custom_themes["Tint"] = gemini_theme
+        ui_settings["theme"] = "Tint"
 
         with open(settings_file, "w") as f:
             json.dump(gemini_settings, f, indent=2)
@@ -563,7 +510,7 @@ def update_gemini_theme():
 
 
 def update_vscode_settings(settings_file=None, app_name="VSCode"):
-    colors_file = Path.home() / ".cache" / "wal" / "colors.json"
+    colors_file = COLORS_FILE
     if settings_file is None:
         settings_file = (
             Path.home()
@@ -575,7 +522,7 @@ def update_vscode_settings(settings_file=None, app_name="VSCode"):
         )
 
     if not colors_file.exists():
-        print(f"Pywal colors not found, skipping {app_name} update")
+        print(f"tint colours not found (run tint apply), skipping {app_name} update")
         return False
 
     if not settings_file.exists():
@@ -934,26 +881,27 @@ def update_antigravity_settings():
     return update_vscode_settings(settings_file=settings_file, app_name="Antigravity")
 
 
+def update_editors():
+    results = [
+        update_zed_theme(),
+        update_vscode_settings(),
+        update_antigravity_settings(),
+        update_gemini_theme(),
+    ]
+    return any(results)
+
+
 def main():
+    # Run by tint as its hook: tint has written the colours and reloaded
+    # SketchyBar and borders; only the editors are left.
+    if os.environ.get("TINT_WALLPAPER"):
+        update_editors()
+        return
+
+    # Run by hand: `reload-theme` or `reload-theme image.jpg`. tint does
+    # the work and calls this script back for the editors.
     wallpaper = sys.argv[1] if len(sys.argv) > 1 else None
-    wal_path = find_wal()
-
-    if wallpaper:
-        if not set_wallpaper(wal_path, wallpaper):
-            sys.exit(1)
-
-    zed_ok = update_zed_theme()
-    vscode_ok = update_vscode_settings()
-    antigravity_ok = update_antigravity_settings()
-    gemini_ok = update_gemini_theme()
-    borders_ok = reload_borders()
-    sketchybar_ok = reload_sketchybar()
-
-    print("")
-    if zed_ok or vscode_ok or antigravity_ok or gemini_ok or borders_ok or sketchybar_ok:
-        print("Theme reloaded")
-    else:
-        print("Theme reload completed with errors")
+    if not run_tint(wallpaper):
         sys.exit(1)
 
 
