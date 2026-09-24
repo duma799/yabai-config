@@ -21,7 +21,7 @@ MacOS tiling WM setup with dynamic color theming. Built with Yabai, SketchyBar, 
 - **Tiling window management** - BSP-like layout with Yabai
 - **Custom status bar** - SketchyBar with battery, bluetooth, wifi, volume, and workspace indicators
 - **Window borders** - JankyBorders with gradient colors from the wallpaper
-- **Editor integration** - tint's hook updates VS Code, Zed, Antigravity and Gemini CLI themes to match
+- **Editor integration** - tint themes Zed, VS Code, Antigravity and Gemini CLI to match
 - **Keyboard-driven** - Extensive keybinds for window manipulation (see [Keybinds.md](Keybinds.md))
 
 ## What's in here
@@ -97,10 +97,6 @@ ln -sf ~/projects/yabaduma-config/reload-theme.py ~/.local/bin/reload-theme
 chmod +x ~/projects/yabaduma-config/reload-theme.py
 echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.zshrc
 
-# Editor themes after every colour change
-mkdir -p ~/.config/tint/hooks
-ln -sf ~/projects/yabaduma-config/reload-theme.py ~/.config/tint/hooks/post-apply
-
 # Start services
 brew services start yabai
 brew services start skhd
@@ -120,12 +116,12 @@ Just change the wallpaper — the tint service themes everything from it. Or by 
 ```bash
 reload-theme                     # re-theme from the current wallpaper
 reload-theme /path/to/image.jpg  # set it as the wallpaper and theme from it
-tint apply -m light              # light scheme (also: dark, auto; saved in the tint app)
+tint apply -m system             # follow macOS dark/light (also: dark, light, auto)
 tint app                         # preview and tweak in the desktop app
 tint doctor                      # check the setup
 ```
 
-tint writes pywal-compatible colors to `~/.cache/wal` (`colors.json`, `colors.sh`…), reloads SketchyBar and borders, then runs `reload-theme` as its hook for the editors. SketchyBar plugins read colors via `colors.py`. Borders reads color6/color4 for the gradient.
+tint writes pywal-compatible colors to `~/.cache/wal` (`colors.json`, `colors.sh`…), reloads SketchyBar and borders, and themes the editors. SketchyBar plugins read colors via `colors.py`. Borders reads color6/color4 for the gradient.
 
 To change which colors borders uses, edit `bordersrc`:
 ```bash

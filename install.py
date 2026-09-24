@@ -170,11 +170,11 @@ def setup_files(install_sketchybar=True, install_borders=True):
 
     reload_theme_src.chmod(reload_theme_src.stat().st_mode | 0o111)
 
-    # tint runs this after every theme change: it updates Zed, VS Code,
-    # Antigravity and Gemini CLI (tint reloads SketchyBar and borders itself).
-    backup_and_link(
-        reload_theme_src, Path.home() / ".config" / "tint" / "hooks" / "post-apply"
-    )
+    # An older version linked reload-theme as tint's hook; tint themes the
+    # editors itself now, so remove that link (it would re-run tint).
+    old_hook = Path.home() / ".config" / "tint" / "hooks" / "post-apply"
+    if old_hook.is_symlink() and old_hook.resolve() == reload_theme_src:
+        old_hook.unlink()
 
     if str(local_bin) not in os.environ["PATH"]:
         warn(f"Ensure {local_bin} is in your PATH. Add this to your shell rc:")
