@@ -60,7 +60,7 @@ def check_cask(cask_name):
     return cask_name in result.stdout.split()
 
 
-def install_dependencies(install_sketchybar=True, install_borders=True):
+def install_dependencies(install_sketchybar=True, install_borders=True, install_tint_app=False):
     log("Checking prerequisites...")
     if not shutil.which("brew"):
         warn("Homebrew not found. Installing...")
@@ -105,11 +105,23 @@ def install_dependencies(install_sketchybar=True, install_borders=True):
         log(f"Installing {font}...")
         run_cmd_or_exit(["brew", "install", "--cask", font])
 
-    if not shutil.which("wal"):
-        log("Installing pywal...")
-        run_cmd_or_exit([sys.executable, "-m", "pip", "install", "pywal"])
+    # tint: colours from the wallpaper (replaces pywal). Its full name,
+    # because Homebrew has an unrelated formula called "tint".
+    log("Installing tint...")
+    run_cmd_or_exit(["brew", "tap", "duma799/tint", "https://github.com/duma799/tint"])
+    if check_brew_package("tint"):
+        log("tint is already installed.")
     else:
-        success("pywal is installed.")
+        run_cmd_or_exit(["brew", "install", "duma799/tint/tint"])
+
+    if install_tint_app:
+        if check_cask("tint-app"):
+            log("The tint app is already installed.")
+        else:
+            run_cmd_or_exit(["brew", "install", "--cask", "duma799/tint/tint-app"])
+
+    if shutil.which("wal"):
+        warn("pywal is still installed but no longer used. Remove it with: pip3 uninstall pywal")
 
 
 def expand_path(path_str):
@@ -158,6 +170,12 @@ def setup_files(install_sketchybar=True, install_borders=True):
 
     reload_theme_src.chmod(reload_theme_src.stat().st_mode | 0o111)
 
+    # An older version linked reload-theme as tint's hook; tint themes the
+    # editors itself now, so remove that link (it would re-run tint).
+    old_hook = Path.home() / ".config" / "tint" / "hooks" / "post-apply"
+    if old_hook.is_symlink() and old_hook.resolve() == reload_theme_src:
+        old_hook.unlink()
+
     if str(local_bin) not in os.environ["PATH"]:
         warn(f"Ensure {local_bin} is in your PATH. Add this to your shell rc:")
         print(f'export PATH="{local_bin}:$PATH"')
@@ -192,6 +210,12 @@ def start_services(install_sketchybar=True, install_borders=True):
                 f"Failed to start {service}. Run 'brew services restart {service}' manually."
             )
 
+    log("Starting tint (re-themes on every wallpaper change, from login)...")
+    if run_cmd(["tint", "service", "install"]):
+        success("tint service started.")
+    else:
+        warn("Failed to start tint. Run 'tint service install' manually, then 'tint doctor'.")
+
 
 def main():
     try:
@@ -201,9 +225,10 @@ def main():
 
         install_sketchybar = ask("Install sketchybar (status bar)?", default=True)
         install_borders = ask("Install borders (window borders)?", default=True)
+        install_tint_app = ask("Install the tint desktop app (preview and tweak themes)?", default=False)
         print("")
 
-        install_dependencies(install_sketchybar, install_borders)
+        install_dependencies(install_sketchybar, install_borders, install_tint_app)
         setup_files(install_sketchybar, install_borders)
         start_services(install_sketchybar, install_borders)
 
@@ -211,8 +236,9 @@ def main():
         print("")
         print("Next steps:")
         print("1. Grant Accessibility permissions to yabai and skhd if prompted.")
-        print("2. Set a wallpaper to generate colors: wal -i /path/to/img.jpg")
-        print("3. Run 'reload-theme' to apply colors.")
+        print("2. Change the wallpaper: tint themes everything from it.")
+        print("   Or: reload-theme /path/to/img.jpg (sets it and themes from it).")
+        print("3. Run 'tint doctor' if something doesn't change colour.")
 
     except KeyboardInterrupt:
         print("\nInstallation aborted.")
