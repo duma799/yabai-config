@@ -1,4 +1,4 @@
-# YabaDuma Config
+# yabai-config
 
 MacOS tiling WM setup with dynamic color theming. Built with Yabai, SketchyBar, and [tint](https://github.com/duma799/tint). All scripts are Python-driven for maintainability.
 
@@ -55,8 +55,8 @@ MacOS tiling WM setup with dynamic color theming. Built with Yabai, SketchyBar, 
 
 2. **Run the automated installer:**
    ```bash
-   git clone https://github.com/duma799/yabaduma-config.git ~/projects/yabaduma-config
-   cd ~/projects/yabaduma-config
+   git clone https://github.com/duma799/yabai-config.git ~/projects/yabai-config
+   cd ~/projects/yabai-config
    ./install.py
    ```
 
@@ -81,20 +81,20 @@ brew tap duma799/tint https://github.com/duma799/tint
 brew install duma799/tint/tint
 
 # Clone and link
-git clone https://github.com/duma799/yabaduma-config.git ~/projects/yabaduma-config
-cd ~/projects/yabaduma-config
+git clone https://github.com/duma799/yabai-config.git ~/projects/yabai-config
+cd ~/projects/yabai-config
 
-ln -sf ~/projects/yabaduma-config/yabairc ~/.yabairc
-ln -sf ~/projects/yabaduma-config/skhdrc ~/.skhdrc
+ln -sf ~/projects/yabai-config/yabairc ~/.yabairc
+ln -sf ~/projects/yabai-config/skhdrc ~/.skhdrc
 mkdir -p ~/.config/skhd
-ln -sf ~/projects/yabaduma-config/scripts ~/.config/skhd/scripts
-ln -sf ~/projects/yabaduma-config/bordersrc ~/.config/borders/bordersrc
-ln -sf ~/projects/yabaduma-config/sketchybar ~/.config/sketchybar
+ln -sf ~/projects/yabai-config/scripts ~/.config/skhd/scripts
+ln -sf ~/projects/yabai-config/bordersrc ~/.config/borders/bordersrc
+ln -sf ~/projects/yabai-config/sketchybar ~/.config/sketchybar
 
 # reload-theme command
 mkdir -p ~/.local/bin
-ln -sf ~/projects/yabaduma-config/reload-theme.py ~/.local/bin/reload-theme
-chmod +x ~/projects/yabaduma-config/reload-theme.py
+ln -sf ~/projects/yabai-config/reload-theme.py ~/.local/bin/reload-theme
+chmod +x ~/projects/yabai-config/reload-theme.py
 echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.zshrc
 
 # Start services

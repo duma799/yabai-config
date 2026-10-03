@@ -9,7 +9,7 @@ from pathlib import Path
 
 REPO_DIR = Path(__file__).parent.resolve()
 TIMESTAMP = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
-BACKUP_DIR = Path.home() / ".config" / f"yabaduma-backup-{TIMESTAMP}"
+BACKUP_DIR = Path.home() / ".config" / f"yabai-backup-{TIMESTAMP}"
 
 GREEN = "\033[0;32m"
 BLUE = "\033[0;34m"
@@ -220,7 +220,7 @@ def start_services(install_sketchybar=True, install_borders=True):
 def main():
     try:
         print("")
-        print("=== Yabaduma Config Installer ===")
+        print("=== yabai-config Installer ===")
         print("")
 
         install_sketchybar = ask("Install sketchybar (status bar)?", default=True)
